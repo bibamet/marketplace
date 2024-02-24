@@ -1,0 +1,16 @@
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  datasource:
+#    url: jdbc:postgresql://localhost:5432/car_store_db
+#    username: car_user
+#    password: 123
+    url: jdbc:postgresql://localhost:5432/marketplacedb
+    username: bibamet
+    password: test
