@@ -41,32 +41,36 @@ public class BasketService {
         Basket basketFromDB = basketRepository
                 .findByUser(userFromDB)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Не найдена корзина для пользователя с \"id\" = %d", deleteGoodsCommand.getUserId())));
+
         Goods goodsFromDB = goodsService.getGoodsFromDB(deleteGoodsCommand.getGoodsId());
         basketFromDB.getGoods().remove(goodsFromDB);
+
         Basket savedBasket = basketRepository.save(basketFromDB);
+
         return basketMapper.basketToBasketQuery(savedBasket);
+
     }
 
     @Transactional
     public BasketQuery addGoodsInBasket(AddGoodsInBasketCommand addGoodsInBasketCommand) {
+
         User userFromDB = userService.getUserFromDB(addGoodsInBasketCommand.getUserId());
-        Basket basketFromDB = null;
-        Optional<Basket> optionalBasket = basketRepository.findByUser(userFromDB);
-        if (optionalBasket.isEmpty()) {
-            basketFromDB = new Basket();
-            basketFromDB.setUser(userFromDB);
-        } else {
-            basketFromDB = optionalBasket.get();
+        if (userFromDB.getBasket() == null) {
+            userFromDB.setBasket(new Basket());
         }
+
+        Basket userBasket = userFromDB.getBasket();
         Goods goodsFromDB = goodsService.getGoodsFromDB(addGoodsInBasketCommand.getGoodsId());
-        if (basketFromDB.getGoods() == null) {
-            basketFromDB.setGoods(new ArrayList<>());
+        if (userBasket.getGoods() == null) {
+            userBasket.setGoods(new ArrayList<>());
         }
-        basketFromDB.getGoods().add(goodsFromDB);
-        Basket savedBasket = basketRepository.save(basketFromDB);
-        userFromDB.setBasket(basketFromDB);
-        User savedUser = userService.saveUser(userFromDB);
-//        return basketMapper.basketToBasketQuery(savedBasket);
-        return basketMapper.basketToBasketQuery(savedUser.getBasket());
+
+        userBasket.getGoods().add(goodsFromDB);
+        userBasket.setUser(userFromDB);
+
+        Basket savedBasket = basketRepository.save(userBasket);
+
+        return basketMapper.basketToBasketQuery(savedBasket);
+
     }
 }
