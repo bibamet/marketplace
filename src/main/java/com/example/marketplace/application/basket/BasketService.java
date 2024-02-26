@@ -63,9 +63,10 @@ public class BasketService {
             basketFromDB.setGoods(new ArrayList<>());
         }
         basketFromDB.getGoods().add(goodsFromDB);
-//        Basket savedBasket = basketRepository.save(basketFromDB);
+        Basket savedBasket = basketRepository.save(basketFromDB);
         userFromDB.setBasket(basketFromDB);
         User savedUser = userService.saveUser(userFromDB);
+//        return basketMapper.basketToBasketQuery(savedBasket);
         return basketMapper.basketToBasketQuery(savedUser.getBasket());
     }
 }
