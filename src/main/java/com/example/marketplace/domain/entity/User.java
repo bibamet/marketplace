@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Entity
 @Getter
 @Setter
@@ -16,8 +18,12 @@ public class User extends BaseInfo {
     @SequenceGenerator(name = "users_gen", sequenceName = "users_gen")
     private Integer id;
 
+    private String firstName;
+    private String lastName;
+    private Date birthDate;
+
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+//    @JoinColumn(name = "basket_id")
     private Basket basket;
 
 }

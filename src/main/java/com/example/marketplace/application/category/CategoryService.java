@@ -18,31 +18,26 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
     private final ModelMapper modelMapper;
 
     public List<CategoryQuery> getAll() {
         List<Category> categoriesFromDB = categoryRepository.findAll();
-        if (categoriesFromDB.isEmpty()) {
-            return new ArrayList<CategoryQuery>();
-        }
-
-        return (categoriesFromDB.stream().map(category -> modelMapper.map(category, CategoryQuery.class)).toList());
-
+        return categoryMapper.fromListCategoryToListQuery(categoriesFromDB);
     }
 
     public CategoryQuery getById(Integer id) {
-        return modelMapper.map(categoryRepository
+        Category categoryFromDB = categoryRepository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Категория с \"id\" = %d не найдена", id))), CategoryQuery.class);
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Категория с \"id\" = %d не найдена", id)));
+        return categoryMapper.fromCategoryToCategoryQuery(categoryFromDB);
     }
 
     public CategoryQuery create(CreateCategoryCommand createCategoryCommand) {
-
-        Category newCategory = modelMapper.map(createCategoryCommand, Category.class);
+        Category newCategory = categoryMapper.fromCreateCategoryToCategory(createCategoryCommand);
         Category savedCategory = categoryRepository.save(newCategory);
-
-        return modelMapper.map(savedCategory, CategoryQuery.class);
-
+        return categoryMapper.fromCategoryToCategoryQuery(savedCategory);
+//        Category newCategory = modelMapper.map(createCategoryCommand, Category.class);
     }
 
 
@@ -58,15 +53,15 @@ public class CategoryService {
                 .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Категория с \"id\" = %d не найдена", id)));
 
-        if (!categoryFromDB.getName().equals(updateCategoryCommand.getName())) {
-            categoryFromDB.setName(updateCategoryCommand.getName());
-        }
-        if (!categoryFromDB.getDescription().equals(updateCategoryCommand.getDescription())) {
-            categoryFromDB.setDescription(updateCategoryCommand.getDescription());
-        }
-
+        categoryMapper.updateCategory(updateCategoryCommand, categoryFromDB);
         Category updatedCategory = categoryRepository.save(categoryFromDB);
-        return modelMapper.map(updatedCategory, CategoryQuery.class);
+        return categoryMapper.fromCategoryToCategoryQuery(updatedCategory);
+//        if (!categoryFromDB.getName().equals(updateCategoryCommand.getName())) {
+//            categoryFromDB.setName(updateCategoryCommand.getName());
+//        }
+//        if (!categoryFromDB.getDescription().equals(updateCategoryCommand.getDescription())) {
+//            categoryFromDB.setDescription(updateCategoryCommand.getDescription());
+//        }
     }
 
     public List<Category> getCategoriesById(List<Integer> categories) {

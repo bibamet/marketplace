@@ -21,19 +21,23 @@ public class GoodsService {
     private final GoodsRepository goodsRepository;
     private final ModelMapper modelMapper;
     private final CategoryService categoryService;
+    private final GoodsMapper goodsMapper;
 
     public List<GoodsQuery> getAll() {
-        return goodsRepository.findAll().stream().map(goods -> modelMapper.map(goods, GoodsQuery.class)).toList();
+        return goodsMapper.fromListGoodsToListGoodsQuery(goodsRepository.findAll());
+//        return goodsRepository.findAll().stream().map(goods -> modelMapper.map(goods, GoodsQuery.class)).toList();
     }
 
     public GoodsQuery getById(Integer id) {
-        Goods goodsFromDB = goodsRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(String.format("Не удалось найти товар с id = %d", id)));
-        return modelMapper.map(goodsFromDB, GoodsQuery.class);
+        Goods goodsFromDB = getGoods(id);
+        return goodsMapper.fromGoodsToGoodsQuery(goodsFromDB);
+//        return modelMapper.map(goodsFromDB, GoodsQuery.class);
     }
 
     public List<GoodsQuery> findByCategoryName(String categoryName) {
         List<Goods> goodsFromDB = goodsRepository.findDistinctByCategories_Name(categoryName);
-        return goodsFromDB.stream().map(goods -> modelMapper.map(goods, GoodsQuery.class)).toList();
+        return goodsMapper.fromListGoodsToListGoodsQuery(goodsFromDB);
+//        return goodsFromDB.stream().map(goods -> modelMapper.map(goods, GoodsQuery.class)).toList();
     }
 
     public GoodsQuery createGoods(CreateGoodsCommand createGoodsCommand) {
@@ -43,18 +47,17 @@ public class GoodsService {
             throw new EntityNotFoundException("Не найдена(-ы) категория(-и) товара(-ов)");
         }
 
-        Goods newGoods = modelMapper.map(createGoodsCommand, Goods.class);
+//        Goods newGoods = modelMapper.map(createGoodsCommand, Goods.class);
+        Goods newGoods = goodsMapper.fromCreateGoodsToGoods(createGoodsCommand);
         newGoods.setCategories(categoriesFromDB);
 
         Goods savedGoods = goodsRepository.save(newGoods);
-        return modelMapper.map(savedGoods, GoodsQuery.class);
+        return goodsMapper.fromGoodsToGoodsQuery(savedGoods);
 
     }
 
     public void deleteGoods(Integer id) {
-        Goods goodsFromDB = goodsRepository
-                .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Не удалось найти товар с id = %d", id)));
+        Goods goodsFromDB = getGoods(id);
         goodsRepository.delete(goodsFromDB);
     }
 
@@ -64,23 +67,10 @@ public class GoodsService {
 
         List<Integer> newCategories = updateGoodsCommand.getCategory();
 
-        Goods goodsFromDB = goodsRepository
-                .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Не удалось найти товар с id = %d", id)));
+        Goods goodsFromDB = getGoods(id);
         List<Integer> goodsIdFromDB = goodsFromDB.getCategories().stream().map(goods -> goods.getId()).toList();
 
-        if (!goodsFromDB.getTitle().equals(updateGoodsCommand.getTitle())) {
-            goodsFromDB.setTitle(updateGoodsCommand.getTitle());
-            changed = true;
-        }
-        if (!goodsFromDB.getDescription().equals(updateGoodsCommand.getDescription())) {
-            goodsFromDB.setDescription(updateGoodsCommand.getDescription());
-            changed = true;
-        }
-        if (!goodsFromDB.getPrice().equals(updateGoodsCommand.getPrice())) {
-            goodsFromDB.setPrice(updateGoodsCommand.getPrice());
-            changed = true;
-        }
+        goodsMapper.updateGoods(updateGoodsCommand, goodsFromDB);
         if (goodsFromDB.getCategories().stream().filter(category -> !newCategories.contains(category.getId())).count() > 0 ||
                 newCategories.stream().filter(newId -> !goodsIdFromDB.contains(newId)).count() > 0) {
             List<Category> categoriesById = categoryService.getCategoriesById(newCategories);
@@ -91,10 +81,31 @@ public class GoodsService {
             changed = true;
         }
 
-        if (changed) {
-            Goods savedGoods = goodsRepository.save(goodsFromDB);
-            return modelMapper.map(savedGoods, GoodsQuery.class);
-        }
-        return modelMapper.map(goodsFromDB, GoodsQuery.class);
+        Goods savedGoods = goodsRepository.save(goodsFromDB);
+        return goodsMapper.fromGoodsToGoodsQuery(savedGoods);
+//        if (!goodsFromDB.getTitle().equals(updateGoodsCommand.getTitle())) {
+//            goodsFromDB.setTitle(updateGoodsCommand.getTitle());
+//            changed = true;
+//        }
+//        if (!goodsFromDB.getDescription().equals(updateGoodsCommand.getDescription())) {
+//            goodsFromDB.setDescription(updateGoodsCommand.getDescription());
+//            changed = true;
+//        }
+//        if (!goodsFromDB.getPrice().equals(updateGoodsCommand.getPrice())) {
+//            goodsFromDB.setPrice(updateGoodsCommand.getPrice());
+//            changed = true;
+//        }
+
     }
+
+    public Goods getGoodsFromDB(Integer id) {
+        return getGoods(id);
+    }
+
+    private Goods getGoods(Integer id) {
+        return goodsRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Не удалось найти товар с id = %d", id)));
+    }
+
 }
