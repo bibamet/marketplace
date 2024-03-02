@@ -108,4 +108,8 @@ public class GoodsService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Не удалось найти товар с id = %d", id)));
     }
 
+    public List<Goods> getGoodsByIds(List<Integer> goodsIds) {
+        return goodsRepository.findAllById(goodsIds);
+    }
+
 }
