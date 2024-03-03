@@ -21,7 +21,7 @@ public class Goods extends BaseInfo {
     private String description;
     private Double price;
 
-    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(name = "goods_categories",
             joinColumns = @JoinColumn(name = "goods_id"),
             inverseJoinColumns = @JoinColumn(name = "categories_id"))

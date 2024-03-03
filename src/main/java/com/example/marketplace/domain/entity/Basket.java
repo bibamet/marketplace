@@ -18,7 +18,7 @@ public class Basket extends BaseInfo {
     @SequenceGenerator(name = "baskets_gen", sequenceName = "baskets_gen")
     private Integer id;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(cascade = CascadeType.ALL)
     private User user;
 
     @ManyToMany(fetch = FetchType.EAGER)

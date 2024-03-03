@@ -23,7 +23,7 @@ public class Order {
     private Statuses status;
     @OneToOne
     private User user;
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(name = "orders_goods",
                 joinColumns = @JoinColumn(name = "order_id"),
                 inverseJoinColumns = @JoinColumn(name = "goods_id"))
